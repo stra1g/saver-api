@@ -1,0 +1,65 @@
+services:
+  server1: &server1
+    build:
+      context: .
+    hostname: server1
+    environment:
+      - DB_HOST=postgres
+    ports:
+      - "8000:8080"
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 150M
+
+  server2:
+    <<: *server1
+    hostname: server2
+    environment:
+      - DB_HOST=postgres
+    ports:
+      - "8001:8080"
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=saver_api
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 150M
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - server1
+      - server2
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 100M
+
+networks:
+  backend:
+
+volumes:
+  postgres-data:
