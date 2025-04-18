@@ -9,6 +9,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/stra1g/saver-api/internal/app/services"
+	"github.com/stra1g/saver-api/internal/infra/config"
+	"github.com/stra1g/saver-api/internal/infra/database"
+	"github.com/stra1g/saver-api/internal/infra/database/repositories"
+	"github.com/stra1g/saver-api/internal/infra/http/handlers"
+	"github.com/stra1g/saver-api/internal/infra/http/routes"
 	"github.com/stra1g/saver-api/pkg/logger"
 	"go.uber.org/fx"
 )
@@ -69,6 +75,12 @@ func main() {
 	}
 
 	app := fx.New(
+		config.Module,
+		database.Module,
+		repositories.Module,
+		services.Module,
+		handlers.Module,
+		routes.Module,
 		fx.Provide(
 			ProvideLogger,
 			Server,

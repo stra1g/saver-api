@@ -15,7 +15,7 @@ RUN go mod download
 COPY . .
 
 # Build the application with proper flags
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o budget-app ./cmd/
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o saver-api ./cmd/
 
 # Second stage: runtime image
 FROM alpine:3.21
@@ -24,7 +24,7 @@ FROM alpine:3.21
 RUN apk --no-cache add ca-certificates
 
 # Copy binary from builder stage
-COPY --from=builder /app/budget-app /budget-app
+COPY --from=builder /app/saver-api /saver-api
 
 # Run the application
 ENTRYPOINT ["/saver-api"]
