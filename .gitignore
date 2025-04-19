@@ -16,7 +16,11 @@ vendor/
 
 # Go workspace file
 go.work
-go.work.sum
+go.work.
+
+# Editor/IDE directories
+.idea/
+.vscode/
 
 # env file
 .env
