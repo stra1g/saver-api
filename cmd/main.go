@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/stra1g/saver-api/pkg/hashing"
 	"log"
 	"net"
 	"net/http"
@@ -39,10 +40,10 @@ func Server(lc fx.Lifecycle, log logger.Logger) *gin.Engine {
 			"message": "pong",
 		})
 	})
- 
+
 	addr := os.Getenv("HOST") + ":" + os.Getenv("PORT")
 	srv := &http.Server{Addr: addr, Handler: router}
- 
+
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			ln, err := net.Listen("tcp", srv.Addr)
@@ -64,7 +65,7 @@ func Server(lc fx.Lifecycle, log logger.Logger) *gin.Engine {
 			return nil
 		},
 	})
- 
+
 	return router
 }
 
@@ -76,6 +77,7 @@ func main() {
 
 	app := fx.New(
 		config.Module,
+		hashing.Module,
 		database.Module,
 		repositories.Module,
 		services.Module,
