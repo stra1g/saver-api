@@ -1,10 +1,11 @@
 package services
 
 import (
-	"errors"
 	"github.com/stra1g/saver-api/internal/domain/entities"
 	"github.com/stra1g/saver-api/internal/domain/repositories"
+	apperror "github.com/stra1g/saver-api/pkg/error"
 	"github.com/stra1g/saver-api/pkg/hashing"
+	"github.com/stra1g/saver-api/pkg/logger"
 )
 
 type UserService interface {
@@ -14,28 +15,28 @@ type UserService interface {
 type userService struct {
 	userRepo repositories.UserRepository
 	hashing  hashing.Hashing
+	logger   logger.Logger
 }
 
-var ErrUserAlreadyExists = errors.New("email already exists")
+var ErrUserAlreadyExists = apperror.New(apperror.ErrorTypeValidation, "Email already exists")
 
 func (s *userService) CreateUser(firstName, lastName, email, password string) (*entities.User, error) {
-	emailAlreadyExists, findErr := s.userRepo.FindUserByEmail(email)
-
-	if findErr != nil {
-		return nil, findErr
+	existingUser, err := s.userRepo.FindUserByEmail(email)
+	if err != nil {
+		return nil, apperror.Wrap(apperror.ErrorTypeDatabase, err)
 	}
 
-	if emailAlreadyExists != nil {
+	if existingUser != nil {
 		return nil, ErrUserAlreadyExists
 	}
 
-	hashedPassword, hashErr := s.hashing.HashValue(password)
-
-	if hashErr != nil {
-		return nil, hashErr
+	hashedPassword, err := s.hashing.HashValue(password)
+	if err != nil {
+		s.logger.Error(err, "Failed to hash password", nil)
+		return nil, apperror.Wrap(apperror.ErrorTypeInternal, err)
 	}
 
-	user, entityErr := entities.NewUser(
+	user, err := entities.NewUser(
 		firstName,
 		lastName,
 		email,
@@ -43,18 +44,26 @@ func (s *userService) CreateUser(firstName, lastName, email, password string) (*
 		entities.RoleUser,
 	)
 
-	if entityErr != nil {
-		return nil, entityErr
+	if err != nil {
+		return nil, apperror.Wrap(apperror.ErrorTypeValidation, err)
 	}
 
-	_, err := s.userRepo.CreateUser(user)
+	createdUser, err := s.userRepo.CreateUser(user)
+	if err != nil {
+		return nil, apperror.Wrap(apperror.ErrorTypeDatabase, err)
+	}
 
-	return user, err
+	return createdUser, nil
 }
 
-func NewUserService(userRepo repositories.UserRepository) UserService {
+func NewUserService(
+	userRepo repositories.UserRepository,
+	hashing hashing.Hashing,
+	logger logger.Logger,
+) UserService {
 	return &userService{
 		userRepo: userRepo,
-		hashing:  hashing.NewHashing(),
+		hashing:  hashing,
+		logger:   logger,
 	}
 }

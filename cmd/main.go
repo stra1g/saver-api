@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/stra1g/saver-api/internal/infra/http/middlewares"
+	apperror "github.com/stra1g/saver-api/pkg/error"
 	"github.com/stra1g/saver-api/pkg/hashing"
 	"log"
 	"net"
@@ -29,6 +31,8 @@ func Server(lc fx.Lifecycle, log logger.Logger) *gin.Engine {
 	router := gin.Default()
 
 	gin.SetMode(gin.DebugMode)
+
+	router.Use(middlewares.ErrorHandler(log))
 
 	router.GET("/ping", func(c *gin.Context) {
 		log.Info("Ping endpoint hit", map[string]interface{}{
@@ -78,6 +82,7 @@ func main() {
 	app := fx.New(
 		config.Module,
 		hashing.Module,
+		apperror.Module,
 		database.Module,
 		repositories.Module,
 		services.Module,

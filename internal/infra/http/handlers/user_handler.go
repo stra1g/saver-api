@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	apperror "github.com/stra1g/saver-api/pkg/error"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,25 +25,32 @@ type CreateUserRequest struct {
 	Password  string `json:"password" validate:"required,min=8,max=32"`
 }
 
-func (c *CreateUserRequest) Validate() error {
+func (c *CreateUserRequest) Validate() *apperror.AppError {
 	if c.FirstName == "" {
-		return ErrInvalidDto
+		return apperror.New(apperror.ErrorTypeValidation, "First name is required").
+			AddContext("field", "first_name")
 	}
 
 	if c.LastName == "" {
-		return ErrInvalidDto
+		return apperror.New(apperror.ErrorTypeValidation, "Last name is required").
+			AddContext("field", "last_name")
 	}
 
 	if c.Email == "" {
-		return ErrInvalidDto
+		return apperror.New(apperror.ErrorTypeValidation, "Email is required").
+			AddContext("field", "email")
 	}
 
 	if c.Password == "" {
-		return ErrInvalidDto
+		return apperror.New(apperror.ErrorTypeValidation, "Password is required").
+			AddContext("field", "password")
 	}
 
 	if len(c.Password) < 8 || len(c.Password) > 32 {
-		return ErrInvalidDto
+		return apperror.New(apperror.ErrorTypeValidation, "Password must be between 8 and 32 characters").
+			AddContext("field", "password").
+			AddContext("min_length", 8).
+			AddContext("max_length", 32)
 	}
 
 	return nil
@@ -68,26 +76,42 @@ func (uc *UserHandler) CreateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var dto CreateUserRequest
 		if err := c.ShouldBindJSON(&dto); err != nil {
-			c.JSON(400, gin.H{"error": "Invalid request"})
+			// Use Aborts to stop request processing and set an error
+			appErr := apperror.New(apperror.ErrorTypeValidation, "Invalid request format")
+			c.Error(appErr)
+			c.Abort()
 			return
 		}
 
 		if err := dto.Validate(); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			c.Error(err)
+			c.Abort()
 			return
 		}
 
-		user, newErr := uc.userService.CreateUser(
+		user, err := uc.userService.CreateUser(
 			dto.FirstName,
 			dto.LastName,
 			dto.Email,
 			dto.Password,
 		)
-		if newErr != nil {
-			uc.log.Info("Failed to create user", map[string]interface{}{
-				"error": newErr,
+
+		if err != nil {
+			// Handle specific service errors
+			if errors.Is(err, services.ErrUserAlreadyExists) {
+				appErr := apperror.New(apperror.ErrorTypeValidation, "User with this email already exists").
+					AddContext("field", "email")
+				c.Error(appErr)
+				c.Abort()
+				return
+			}
+
+			uc.log.Error(err, "Error creating user", map[string]interface{}{
+				"email": dto.Email,
 			})
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create user"})
+
+			c.Error(apperror.Wrap(apperror.ErrorTypeInternal, err))
+			c.Abort()
 			return
 		}
 
