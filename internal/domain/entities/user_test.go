@@ -16,25 +16,25 @@ func TestNewRole(t *testing.T) {
 	}{
 		{
 			name:    "valid root role",
-			role:    "root",
+			role:    "ROOT",
 			want:    entities.RoleRoot,
 			wantErr: false,
 		},
 		{
 			name:    "valid admin role",
-			role:    "admin",
+			role:    "ADMIN",
 			want:    entities.RoleAdmin,
 			wantErr: false,
 		},
 		{
 			name:    "valid user role",
-			role:    "user",
+			role:    "COMMON_USER",
 			want:    entities.RoleUser,
 			wantErr: false,
 		},
 		{
 			name:    "invalid role",
-			role:    "superuser",
+			role:    "SUPERUSER",
 			want:    "",
 			wantErr: true,
 		},
@@ -70,18 +70,18 @@ func TestNewUser(t *testing.T) {
 	lastName := "Doe"
 	email := "john.doe@example.com"
 	password := "securePassword123"
-	
+
 	t.Run("valid user creation", func(t *testing.T) {
-		role, err := entities.NewRole("admin")
+		role, err := entities.NewRole("ADMIN")
 		if err != nil {
 			t.Fatalf("Failed to create role: %v", err)
 		}
-		
+
 		user, err := entities.NewUser(firstName, lastName, email, password, role)
 		if err != nil {
 			t.Fatalf("Failed to create user: %v", err)
 		}
-		
+
 		if user.ID == "" {
 			t.Error("Expected non-empty ID")
 		}
@@ -107,15 +107,15 @@ func TestNewUser(t *testing.T) {
 			t.Errorf("DeletedAt = %v, want zero time", user.DeletedAt)
 		}
 	})
-	
+
 	t.Run("empty first name", func(t *testing.T) {
-		role, err := entities.NewRole("user")
+		role, err := entities.NewRole("COMMON_USER")
 		if err != nil {
 			t.Fatalf("Failed to create role: %v", err)
 		}
-		
+
 		user, err := entities.NewUser("", lastName, email, password, role)
-		
+
 		if err == nil {
 			t.Error("Expected error for empty first name, got nil")
 		}
@@ -126,15 +126,15 @@ func TestNewUser(t *testing.T) {
 			t.Errorf("Error message %q does not mention 'first name'", err.Error())
 		}
 	})
-	
+
 	t.Run("empty last name", func(t *testing.T) {
-		role, err := entities.NewRole("user")
+		role, err := entities.NewRole("COMMON_USER")
 		if err != nil {
 			t.Fatalf("Failed to create role: %v", err)
 		}
-		
+
 		user, err := entities.NewUser(firstName, "", email, password, role)
-		
+
 		if err == nil {
 			t.Error("Expected error for empty last name, got nil")
 		}
@@ -150,27 +150,27 @@ func TestNewUser(t *testing.T) {
 func TestUserIDFormat(t *testing.T) {
 	firstName := "John"
 	lastName := "Doe"
-	
-	role, err := entities.NewRole("user")
+
+	role, err := entities.NewRole("COMMON_USER")
 	if err != nil {
 		t.Fatalf("Failed to create role: %v", err)
 	}
-	
+
 	user, err := entities.NewUser(firstName, lastName, "email@example.com", "password", role)
 	if err != nil {
 		t.Fatalf("Failed to create user: %v", err)
 	}
-	
+
 	// UUID format is 8-4-4-4-12 (32 chars + 4 hyphens)
 	if len(user.ID) != 36 {
 		t.Errorf("ID length = %d, want 36", len(user.ID))
 	}
-	
+
 	parts := strings.Split(user.ID, "-")
 	if len(parts) != 5 {
 		t.Errorf("ID format incorrect, expected 5 parts separated by hyphens, got %d parts", len(parts))
 	}
-	
+
 	expectedLengths := []int{8, 4, 4, 4, 12}
 	for i, part := range parts {
 		if len(part) != expectedLengths[i] {
