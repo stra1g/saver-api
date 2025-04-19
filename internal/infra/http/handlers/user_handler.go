@@ -16,8 +16,6 @@ type UserHandler struct {
 	log         logger.Logger
 }
 
-var ErrInvalidDto = errors.New("invalid dto")
-
 type CreateUserRequest struct {
 	FirstName string `json:"first_name" validate:"required"`
 	LastName  string `json:"last_name" validate:"required"`

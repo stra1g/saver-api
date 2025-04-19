@@ -27,14 +27,16 @@ func ProvideLogger() logger.Logger {
 	return logger.Initialize(os.Stdout, isDebug)
 }
 
-func Server(lc fx.Lifecycle, log logger.Logger) *gin.Engine {
+func Server(lc fx.Lifecycle, log logger.Logger) (*gin.Engine, *gin.RouterGroup) {
 	router := gin.Default()
 
 	gin.SetMode(gin.DebugMode)
 
 	router.Use(middlewares.ErrorHandler(log))
 
-	router.GET("/ping", func(c *gin.Context) {
+	apiV1 := router.Group("/api/v1")
+
+	apiV1.GET("/ping", func(c *gin.Context) {
 		log.Info("Ping endpoint hit", map[string]interface{}{
 			"method": c.Request.Method,
 			"path":   c.Request.URL.Path,
@@ -70,7 +72,7 @@ func Server(lc fx.Lifecycle, log logger.Logger) *gin.Engine {
 		},
 	})
 
-	return router
+	return router, apiV1
 }
 
 func main() {
@@ -86,6 +88,7 @@ func main() {
 		database.Module,
 		repositories.Module,
 		services.Module,
+		middlewares.Module,
 		handlers.Module,
 		routes.Module,
 		fx.Provide(

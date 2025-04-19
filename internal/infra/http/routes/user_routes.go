@@ -7,28 +7,28 @@ import (
 )
 
 type UserRoutes struct {
-	router        *gin.Engine
-	userHandler   *handlers.UserHandler
-	logger        logger.Logger
+	apiGroup    *gin.RouterGroup
+	userHandler *handlers.UserHandler
+	logger      logger.Logger
 }
 
 func (r *UserRoutes) SetupRoutes() {
 	r.logger.Info("Setting up user routes", map[string]interface{}{})
-	
-	usersGroup := r.router.Group("/users")
+
+	usersGroup := r.apiGroup.Group("/users")
 	{
 		usersGroup.POST("", r.userHandler.CreateUser())
 	}
 }
 
 func NewUserRoutes(
-	router *gin.Engine,
+	apiGroup *gin.RouterGroup,
 	userHandler *handlers.UserHandler,
 	logger logger.Logger,
 ) *UserRoutes {
 	return &UserRoutes{
-		router:        router,
-		userHandler:   userHandler,
-		logger:        logger,
+		apiGroup:    apiGroup,
+		userHandler: userHandler,
+		logger:      logger,
 	}
 }
