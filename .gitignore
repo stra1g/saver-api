@@ -22,5 +22,8 @@ go.work.
 .idea/
 .vscode/
 
+# Others
+repomix-output.txt
+
 # env file
 .env

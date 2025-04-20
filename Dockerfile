@@ -1,30 +1,26 @@
-# First stage: build the application
 FROM golang:1.24-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Install necessary build tools
-RUN apk add --no-cache gcc musl-dev
+RUN apk add --no-cache gcc musl-dev git
 
-# Copy dependency files first for better caching
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy the rest of the application code
 COPY . .
 
-# Build the application with proper flags
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o saver-api ./cmd/
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o saver-api ./cmd/
 
-# Second stage: runtime image
 FROM alpine:3.21
 
-# Add certificates for HTTPS requests
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates && \
+    addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Copy binary from builder stage
-COPY --from=builder /app/saver-api /saver-api
+COPY --from=builder /app/saver-api /app/saver-api
 
-# Run the application
-ENTRYPOINT ["/saver-api"]
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -qO- http://localhost:8080/health || exit 1
+
+ENTRYPOINT ["/app/saver-api"]

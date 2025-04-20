@@ -36,14 +36,9 @@ func Server(lc fx.Lifecycle, log logger.Logger) (*gin.Engine, *gin.RouterGroup) 
 
 	apiV1 := router.Group("/api/v1")
 
-	apiV1.GET("/ping", func(c *gin.Context) {
-		log.Info("Ping endpoint hit", map[string]interface{}{
-			"method": c.Request.Method,
-			"path":   c.Request.URL.Path,
-		})
-
+	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "pong",
+			"message": "ok",
 		})
 	})
 
