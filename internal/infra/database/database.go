@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"sync"
 
@@ -17,16 +16,9 @@ var (
 
 func NewPostgresDatabase(config *config.Config) *pgxpool.Pool {
 	once.Do(func() {
-		connUrl := fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-			config.Database.User,
-			config.Database.Password,
-			config.Database.Host,
-			config.Database.Port,
-			config.Database.Name,
-		)
+		dbDSN := config.GetDatabaseDSN()
 
-		poolConfig, err := pgxpool.ParseConfig(connUrl)
+		poolConfig, err := pgxpool.ParseConfig(dbDSN)
 		if err != nil {
 			log.Fatalln("Unable to parse connection url:", err)
 		}

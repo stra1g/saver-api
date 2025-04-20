@@ -27,7 +27,7 @@ func ProvideLogger() logger.Logger {
 	return logger.Initialize(os.Stdout, isDebug)
 }
 
-func Server(lc fx.Lifecycle, log logger.Logger) (*gin.Engine, *gin.RouterGroup) {
+func Server(lc fx.Lifecycle, log logger.Logger, config *config.Config) (*gin.Engine, *gin.RouterGroup) {
 	router := gin.Default()
 
 	gin.SetMode(gin.DebugMode)
@@ -42,7 +42,7 @@ func Server(lc fx.Lifecycle, log logger.Logger) (*gin.Engine, *gin.RouterGroup) 
 		})
 	})
 
-	addr := os.Getenv("HOST") + ":" + os.Getenv("PORT")
+	addr := config.Server.Host + ":" + config.Server.Port
 	srv := &http.Server{Addr: addr, Handler: router}
 
 	lc.Append(fx.Hook{
