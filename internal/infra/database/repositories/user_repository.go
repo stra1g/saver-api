@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stra1g/saver-api/internal/domain/entities"
@@ -30,11 +31,12 @@ func (r *UserRepository) CreateUser(user *entities.User) (*entities.User, error)
 func (r *UserRepository) FindUserByEmail(email string) (*entities.User, error) {
 	var user entities.User
 
-	err := r.db.QueryRow(
-		context.Background(),
-		"SELECT id, first_name, last_name, email FROM users WHERE email = $1",
-		email,
-	).Scan(
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := "SELECT id, first_name, last_name, email FROM users WHERE email = $1"
+
+	err := r.db.QueryRow(ctx, query, email).Scan(
 		&user.ID,
 		&user.FirstName,
 		&user.LastName,
