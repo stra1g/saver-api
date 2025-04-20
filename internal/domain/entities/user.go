@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,14 +12,15 @@ type Role string
 
 const (
 	RoleRoot  Role = "ROOT"
-	RoleAdmin   Role = "ADMIN"
-	RoleUser Role = "COMMON_USER"
+	RoleAdmin Role = "ADMIN"
+	RoleUser  Role = "COMMON_USER"
 )
 
 func NewRole(role string) (Role, error) {
-	switch Role(role) {
+	formattedRole := strings.ToUpper(role)
+	switch Role(strings.ToUpper(formattedRole)) {
 	case RoleRoot, RoleAdmin, RoleUser:
-		return Role(role), nil
+		return Role(formattedRole), nil
 	default:
 		return "", fmt.Errorf("invalid role: %s", role)
 	}
@@ -46,6 +48,18 @@ func NewUser(
 ) (*User, error) {
 	if firstName == "" || lastName == "" {
 		return nil, fmt.Errorf("first name and last name are required")
+	}
+
+	if email == "" {
+		return nil, fmt.Errorf("email is required")
+	}
+
+	if !strings.Contains(email, "@") || !strings.Contains(email, ".") {
+		return nil, fmt.Errorf("invalid email format")
+	}
+
+	if password == "" {
+		return nil, fmt.Errorf("password is required")
 	}
 
 	return &User{

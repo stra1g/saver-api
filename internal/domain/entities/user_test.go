@@ -1,10 +1,11 @@
 package entities_test
 
 import (
-	"strings"
 	"testing"
+	"time"
 
 	"github.com/stra1g/saver-api/internal/domain/entities"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewRole(t *testing.T) {
@@ -15,28 +16,34 @@ func TestNewRole(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "valid root role",
+			name:    "valid ROOT role",
 			role:    "ROOT",
 			want:    entities.RoleRoot,
 			wantErr: false,
 		},
 		{
-			name:    "valid admin role",
+			name:    "valid ADMIN role",
 			role:    "ADMIN",
 			want:    entities.RoleAdmin,
 			wantErr: false,
 		},
 		{
-			name:    "valid user role",
+			name:    "valid COMMON_USER role",
 			role:    "COMMON_USER",
 			want:    entities.RoleUser,
 			wantErr: false,
 		},
 		{
 			name:    "invalid role",
-			role:    "SUPERUSER",
+			role:    "INVALID_ROLE",
 			want:    "",
 			wantErr: true,
+		},
+		{
+			name:    "case insensitive role",
+			role:    "admin",
+			want:    entities.RoleAdmin,
+			wantErr: false,
 		},
 		{
 			name:    "empty role",
@@ -50,131 +57,113 @@ func TestNewRole(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := entities.NewRole(tt.role)
 			if tt.wantErr {
-				if err == nil {
-					t.Errorf("NewRole(%q) expected error, got nil", tt.role)
-				}
+				assert.Error(t, err)
 			} else {
-				if err != nil {
-					t.Errorf("NewRole(%q) unexpected error: %v", tt.role, err)
-				}
-				if got != tt.want {
-					t.Errorf("NewRole(%q) = %v, want %v", tt.role, got, tt.want)
-				}
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
 			}
 		})
 	}
 }
 
 func TestNewUser(t *testing.T) {
-	firstName := "John"
-	lastName := "Doe"
-	email := "john.doe@example.com"
-	password := "securePassword123"
+	tests := []struct {
+		name      string
+		firstName string
+		lastName  string
+		email     string
+		password  string
+		role      entities.Role
+		wantErr   bool
+	}{
+		{
+			name:      "valid user creation",
+			firstName: "John",
+			lastName:  "Doe",
+			email:     "john.doe@example.com",
+			password:  "password123",
+			role:      entities.RoleUser,
+			wantErr:   false,
+		},
+		{
+			name:      "empty first name",
+			firstName: "",
+			lastName:  "Doe",
+			email:     "john.doe@example.com",
+			password:  "password123",
+			role:      entities.RoleUser,
+			wantErr:   true,
+		},
+		{
+			name:      "empty last name",
+			firstName: "John",
+			lastName:  "",
+			email:     "john.doe@example.com",
+			password:  "password123",
+			role:      entities.RoleUser,
+			wantErr:   true,
+		},
+		{
+			name:      "empty email",
+			firstName: "John",
+			lastName:  "Doe",
+			email:     "",
+			password:  "password123",
+			role:      entities.RoleUser,
+			wantErr:   true,
+		},
+		{
+			name:      "invalid email format",
+			firstName: "John",
+			lastName:  "Doe",
+			email:     "not-an-email",
+			password:  "password123",
+			role:      entities.RoleUser,
+			wantErr:   true,
+		},
+		{
+			name:      "empty password",
+			firstName: "John",
+			lastName:  "Doe",
+			email:     "john.doe@example.com",
+			password:  "",
+			role:      entities.RoleUser,
+			wantErr:   true,
+		},
+	}
 
-	t.Run("valid user creation", func(t *testing.T) {
-		role, err := entities.NewRole("ADMIN")
-		if err != nil {
-			t.Fatalf("Failed to create role: %v", err)
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			user, err := entities.NewUser(tt.firstName, tt.lastName, tt.email, tt.password, tt.role)
 
-		user, err := entities.NewUser(firstName, lastName, email, password, role)
-		if err != nil {
-			t.Fatalf("Failed to create user: %v", err)
-		}
-
-		if user.ID == "" {
-			t.Error("Expected non-empty ID")
-		}
-		if user.FirstName != firstName {
-			t.Errorf("FirstName = %q, want %q", user.FirstName, firstName)
-		}
-		if user.LastName != lastName {
-			t.Errorf("LastName = %q, want %q", user.LastName, lastName)
-		}
-		if user.Email != email {
-			t.Errorf("Email = %q, want %q", user.Email, email)
-		}
-		if user.Password != password {
-			t.Errorf("Password = %q, want %q", user.Password, password)
-		}
-		if user.Role != role {
-			t.Errorf("Role = %q, want %q", user.Role, role)
-		}
-		if user.IsDeleted {
-			t.Error("IsDeleted = true, want false")
-		}
-		if !user.DeletedAt.IsZero() {
-			t.Errorf("DeletedAt = %v, want zero time", user.DeletedAt)
-		}
-	})
-
-	t.Run("empty first name", func(t *testing.T) {
-		role, err := entities.NewRole("COMMON_USER")
-		if err != nil {
-			t.Fatalf("Failed to create role: %v", err)
-		}
-
-		user, err := entities.NewUser("", lastName, email, password, role)
-
-		if err == nil {
-			t.Error("Expected error for empty first name, got nil")
-		}
-		if user != nil {
-			t.Error("Expected nil user for invalid input")
-		}
-		if err != nil && !strings.Contains(err.Error(), "first name") {
-			t.Errorf("Error message %q does not mention 'first name'", err.Error())
-		}
-	})
-
-	t.Run("empty last name", func(t *testing.T) {
-		role, err := entities.NewRole("COMMON_USER")
-		if err != nil {
-			t.Fatalf("Failed to create role: %v", err)
-		}
-
-		user, err := entities.NewUser(firstName, "", email, password, role)
-
-		if err == nil {
-			t.Error("Expected error for empty last name, got nil")
-		}
-		if user != nil {
-			t.Error("Expected nil user for invalid input")
-		}
-		if err != nil && !strings.Contains(err.Error(), "last name") {
-			t.Errorf("Error message %q does not mention 'last name'", err.Error())
-		}
-	})
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, user)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, user)
+				assert.Equal(t, tt.firstName, user.FirstName)
+				assert.Equal(t, tt.lastName, user.LastName)
+				assert.Equal(t, tt.email, user.Email)
+				assert.Equal(t, tt.password, user.Password)
+				assert.Equal(t, tt.role, user.Role)
+				assert.NotEmpty(t, user.ID)
+				assert.False(t, user.IsDeleted)
+				assert.Equal(t, time.Time{}, user.DeletedAt)
+				assert.NotEqual(t, time.Time{}, user.CreatedAt)
+				assert.NotEqual(t, time.Time{}, user.UpdatedAt)
+			}
+		})
+	}
 }
 
 func TestUserIDFormat(t *testing.T) {
-	firstName := "John"
-	lastName := "Doe"
+	user, err := entities.NewUser("John", "Doe", "john.doe@example.com", "password123", entities.RoleUser)
+	assert.NoError(t, err)
 
-	role, err := entities.NewRole("COMMON_USER")
-	if err != nil {
-		t.Fatalf("Failed to create role: %v", err)
-	}
+	// Check UUID format (8-4-4-4-12 characters + 4 hyphens = 36 chars)
+	assert.Len(t, user.ID, 36)
 
-	user, err := entities.NewUser(firstName, lastName, "email@example.com", "password", role)
-	if err != nil {
-		t.Fatalf("Failed to create user: %v", err)
-	}
-
-	// UUID format is 8-4-4-4-12 (32 chars + 4 hyphens)
-	if len(user.ID) != 36 {
-		t.Errorf("ID length = %d, want 36", len(user.ID))
-	}
-
-	parts := strings.Split(user.ID, "-")
-	if len(parts) != 5 {
-		t.Errorf("ID format incorrect, expected 5 parts separated by hyphens, got %d parts", len(parts))
-	}
-
-	expectedLengths := []int{8, 4, 4, 4, 12}
-	for i, part := range parts {
-		if len(part) != expectedLengths[i] {
-			t.Errorf("UUID part %d has length %d, want %d", i, len(part), expectedLengths[i])
-		}
-	}
+	// Pattern check: 8-4-4-4-12
+	assert.Regexp(t, "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", user.ID)
 }
