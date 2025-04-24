@@ -11,3 +11,17 @@
     </td>
   </tr>
 </table>
+
+## Core Team
+
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top">
+        <img width="150" height="150" src="https://github.com/stra1g.png?s=150">
+        <br>
+        <a href="https://github.com/stra1g">Luís Vitor</a>
+      </td>
+   </tr>
+  </tbody>
+</table>
