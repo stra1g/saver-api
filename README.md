@@ -2,6 +2,7 @@
 ![workflow](https://github.com/stra1g/saver-api/actions/workflows/ci.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stra1g/saver-api)](https://goreportcard.com/report/github.com/stra1g/saver-api)
 [![codecov](https://codecov.io/gh/stra1g/saver-api/branch/main/graph/badge.svg)](https://codecov.io/gh/stra1g/saver-api)
+![Docker Image Size](https://img.shields.io/docker/image-size/stra1g/saver-api/latest)
 
 <table align="center">
   <tr>
