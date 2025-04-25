@@ -80,7 +80,7 @@ jobs:
       - name: Run database migrations
         run: |
           migrate -path internal/infra/database/migrations \
-          -database "postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:5432/${{ secrets.DB_NAME }}?sslmode=disable" \
+          -database "postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:5432/${{ secrets.DB_NAME }}?sslmode=require" \
           -verbose up
 
       - name: Deploy to EC2
