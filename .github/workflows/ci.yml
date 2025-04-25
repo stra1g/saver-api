@@ -80,7 +80,7 @@ jobs:
       - name: Run database migrations
         run: |
           migrate -path internal/infra/database/migrations \
-          -database "postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:5432/${{ secrets.DB_NAME }}?sslmode=require" \
+          -database "postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:5432/${{ secrets.DB_NAME }}?sslmode=${{ secrets.DB_SSLMODE }}" \
           -verbose up
 
       - name: Deploy to EC2
@@ -99,6 +99,7 @@ jobs:
               -e DB_USER=${{ secrets.DB_USER }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               -e DB_NAME=${{ secrets.DB_NAME }} \
+              -e DB_SSLMODE=${{ secrets.DB_SSLMODE }} \
               -e PORT=8080 \
               -e HOST=127.0.0.1 \
               stra1g/saver-api:latest
