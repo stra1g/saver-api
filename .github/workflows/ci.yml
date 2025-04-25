@@ -99,4 +99,6 @@ jobs:
               -e DB_USER=${{ secrets.DB_USER }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               -e DB_NAME=${{ secrets.DB_NAME }} \
+              -e PORT=8080 \
+              -e HOST=127.0.0.1 \
               stra1g/saver-api:latest

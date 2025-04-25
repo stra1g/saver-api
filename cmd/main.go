@@ -5,7 +5,6 @@ import (
 	"github.com/stra1g/saver-api/internal/infra/http/middlewares"
 	apperror "github.com/stra1g/saver-api/pkg/error"
 	"github.com/stra1g/saver-api/pkg/hashing"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -71,10 +70,7 @@ func Server(lc fx.Lifecycle, log logger.Logger, config *config.Config) (*gin.Eng
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load()
 
 	app := fx.New(
 		config.Module,
