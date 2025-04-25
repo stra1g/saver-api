@@ -18,6 +18,7 @@ type Config struct {
 		User     string `validate:"required"`
 		Password string `validate:"required"`
 		Name     string `validate:"required"`
+		SSLMode  string `validate:"required,oneof=disable require"`
 	}
 }
 
@@ -36,12 +37,14 @@ func NewConfig() (*Config, error) {
 			User     string `validate:"required"`
 			Password string `validate:"required"`
 			Name     string `validate:"required"`
+			SSLMode  string `validate:"required,oneof=disable require"`
 		}{
 			Host:     getEnvWithDefault("DB_HOST", "localhost"),
 			Port:     getEnvWithDefault("DB_PORT", "5432"),
 			User:     getEnvWithDefault("DB_USER", ""),
 			Password: getEnvWithDefault("DB_PASSWORD", ""),
 			Name:     getEnvWithDefault("DB_NAME", ""),
+			SSLMode:  getEnvWithDefault("DB_SSLMODE", "disable"),
 		},
 	}
 
@@ -87,6 +90,6 @@ func validateConfig(config *Config) error {
 }
 
 func (c *Config) GetDatabaseDSN() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		c.Database.User, c.Database.Password, c.Database.Host, c.Database.Port, c.Database.Name)
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		c.Database.User, c.Database.Password, c.Database.Host, c.Database.Port, c.Database.Name, c.Database.SSLMode)
 }
