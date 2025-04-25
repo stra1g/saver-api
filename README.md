@@ -1,5 +1,6 @@
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/stra1g/saver-api)
 ![workflow](https://github.com/stra1g/saver-api/actions/workflows/ci.yml/badge.svg)
+[![Go Reference](https://pkg.go.dev/badge/github.com/stra1g/saver-api.svg)](https://pkg.go.dev/github.com/stra1g/saver-api)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stra1g/saver-api)](https://goreportcard.com/report/github.com/stra1g/saver-api)
 [![codecov](https://codecov.io/gh/stra1g/saver-api/branch/main/graph/badge.svg)](https://codecov.io/gh/stra1g/saver-api)
 ![Docker Image Size](https://img.shields.io/docker/image-size/stra1g/saver-api/latest)
