@@ -101,5 +101,5 @@ jobs:
               -e DB_NAME=${{ secrets.DB_NAME }} \
               -e DB_SSLMODE=${{ secrets.DB_SSLMODE }} \
               -e PORT=8080 \
-              -e HOST=127.0.0.1 \
+              -e HOST=0.0.0.0 \
               stra1g/saver-api:latest
