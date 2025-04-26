@@ -28,8 +28,8 @@ func NewConfig() (*Config, error) {
 			Port string `validate:"required,numeric"`
 			Host string `validate:"required"`
 		}{
-			Port: getEnvWithDefault("PORT", "8080"),
-			Host: getEnvWithDefault("HOST", "0.0.0.0"),
+			Port: GetEnvWithDefault("PORT", "8080"),
+			Host: GetEnvWithDefault("HOST", "0.0.0.0"),
 		},
 		Database: struct {
 			Host     string `validate:"required"`
@@ -39,23 +39,23 @@ func NewConfig() (*Config, error) {
 			Name     string `validate:"required"`
 			SSLMode  string `validate:"required,oneof=disable require"`
 		}{
-			Host:     getEnvWithDefault("DB_HOST", "localhost"),
-			Port:     getEnvWithDefault("DB_PORT", "5432"),
-			User:     getEnvWithDefault("DB_USER", ""),
-			Password: getEnvWithDefault("DB_PASSWORD", ""),
-			Name:     getEnvWithDefault("DB_NAME", ""),
-			SSLMode:  getEnvWithDefault("DB_SSLMODE", "disable"),
+			Host:     GetEnvWithDefault("DB_HOST", "localhost"),
+			Port:     GetEnvWithDefault("DB_PORT", "5432"),
+			User:     GetEnvWithDefault("DB_USER", ""),
+			Password: GetEnvWithDefault("DB_PASSWORD", ""),
+			Name:     GetEnvWithDefault("DB_NAME", ""),
+			SSLMode:  GetEnvWithDefault("DB_SSLMODE", "disable"),
 		},
 	}
 
-	if err := validateConfig(config); err != nil {
+	if err := ValidateConfig(config); err != nil {
 		return nil, err
 	}
 
 	return config, nil
 }
 
-func getEnvWithDefault(key, defaultValue string) string {
+func GetEnvWithDefault(key, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
 		return defaultValue
@@ -63,7 +63,7 @@ func getEnvWithDefault(key, defaultValue string) string {
 	return value
 }
 
-func validateConfig(config *Config) error {
+func ValidateConfig(config *Config) error {
 	validate := validator.New()
 
 	err := validate.Struct(config)
